@@ -7,8 +7,6 @@ import {useEffect, useRef} from 'react'
 export default function Scene() {
 
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const screenWidth = window.innerWidth;
-    const cubeSize = Math.max(0.1, Math.min(2, screenWidth / 1000)); 
 
     useEffect(()=> {
         if(typeof window !== 'undefined') {
