@@ -41,9 +41,9 @@ export default function Scene() {
                 cube.rotation.x += 0.01;
                 cube.rotation.y += 0.01;
 
-                if(cube.position.x < 2) {
-                    cube.position.x += 0.02
-                }
+                // if(cube.position.x < 2) {
+                //     cube.position.x += 0.02
+                // }
                 renderer.render(scene, camera);
 
                 requestAnimationFrame(renderScene);
