@@ -1,6 +1,4 @@
-'use client'
-
-import { ChakraProvider } from '@chakra-ui/react'
+import { Providers } from "./providers";
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 
@@ -19,9 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-      <ChakraProvider>
+      <Providers>
         {children}
-      </ChakraProvider>
+      </Providers>
       </body>
     </html>
   )
