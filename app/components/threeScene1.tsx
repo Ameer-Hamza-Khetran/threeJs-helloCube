@@ -26,10 +26,9 @@ export default function Scene() {
 
         containerRef.current?.appendChild(renderer.domElement);
         
-        cube.position.set(0,0,0);
-        
+        cube.position.set(0 , 0, 0);
+
         const renderScene = () => {
-            cube.position.set(0,0,0);
             cube.rotation.x += 0.01;
             cube.rotation.y += 0.01;
 
