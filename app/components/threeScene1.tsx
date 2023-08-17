@@ -10,6 +10,7 @@ import { gsap } from "gsap";
 export default function Scene() {
 
     const containerRef = useRef<HTMLDivElement | null>(null);
+    //const breakpointValue = useBreakpointValue({ base: "base", sm: "sm", md: "md", lg: "lg", xl: "xl" } || "base");
 
     useEffect(()=> {
         if(typeof window !== 'undefined') {
@@ -23,9 +24,15 @@ export default function Scene() {
             camera.position.z = 5;
 
             const geometry = new THREE.BoxGeometry();
-            const material = new THREE.MeshBasicMaterial({color: 0x00ffff});
+            const material = new THREE.MeshPhongMaterial({color: 0x00ffff});
             const cube = new THREE.Mesh(geometry, material);
             scene.add(cube);
+
+            const color = 0xFFFFFF;
+            const intensity = 3;
+            const light = new THREE.DirectionalLight(color, intensity);
+            light.position.set(-1, 2, 4);
+            scene.add(light);
 
             containerRef.current?.appendChild(renderer.domElement);
             
@@ -39,19 +46,37 @@ export default function Scene() {
             }
 
             //------- gsap initial render -----
-     
-      
+            const cubeRotate = new THREE.Object3D();
+            cubeRotate.add(cube);
+            scene.add(cubeRotate);
+
+            // pivot initial render
+            const pivot = new THREE.Object3D();
+            pivot.add(cubeRotate);
+            cubeRotate.position.set(0,0,-2);
+            scene.add(pivot);
+
             // Use GSAP to animate the cube's movement
-            
+            gsap.to(cubeRotate.rotation, {
+                x: Math.PI * 2,
+                y: Math.PI * 2,
+                duration: 4, // 4 sec
+                ease: "linear",
+                repeat: -1,
+            })
+
+            //use gsap to animate the pivot's movement
+            gsap.to(pivot.rotation, {
+                duration: 4,
+                repeat: -1,
+                ease: "linear",
+                y: Math.PI * 2,
+            }) 
 
             //------ Render Scene -------
             let newCubeSize: number;
 
             const renderScene = () => {
-                cube.rotation.x += 0.01;
-                cube.rotation.y += 0.01;
-                console.log(`Cube Size: ${newCubeSize}`)
-
                 renderer.render(scene, camera); 
                 animationFrameId = requestAnimationFrame(renderScene);
             }
@@ -66,6 +91,30 @@ export default function Scene() {
                 
                 newCubeSize = Math.max(0.3, Math.min(1, newWidth / 1000));
                 cube.scale.set(newCubeSize, newCubeSize, newCubeSize);
+
+                // Update pivotDistance based on the current breakpoint value
+                // switch (breakpointValue) {
+                //     case "base":
+                //         pivotDistance = 0.1;
+                //         break;
+                //     case "sm":
+                //         pivotDistance = 0.5;
+                //         break;
+                //     case "md":
+                //         pivotDistance = 1;
+                //         break;
+                //     case "lg":
+                //         pivotDistance = 2;
+                //         break;
+                //     case "xl":
+                //         pivotDistance = 2.5;
+                //         break;
+                //     default:
+                //         break;
+                // }
+
+                // pivot1.position.x = -2.5;
+                // pivot2.position.x = 2.5;
                                
                 renderer.setSize(newWidth,newHeight);
             }
@@ -77,7 +126,7 @@ export default function Scene() {
         }
     }, [])
     return (
-        <Container maxWidth={'full'} w={'full'} h={'100vh'} centerContent={true}>
+        <Container maxWidth={'100vw'} w={'100vw'} h={'100vh'} centerContent={true}>
             <Box ref={containerRef}/>
         </Container>
     );
