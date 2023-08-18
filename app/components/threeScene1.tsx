@@ -5,7 +5,9 @@ import { Box, useBreakpointValue, Container } from "@chakra-ui/react"
 import {useEffect, useRef, useState} from 'react';
 import throttle from 'lodash/throttle';
 import { gsap } from "gsap";
-
+import Stats from 'stats.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import GUI from 'lil-gui';
 
 export default function Scene() {
 
@@ -16,11 +18,12 @@ export default function Scene() {
         if(typeof window !== 'undefined') {
 
             const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 500);
             const renderer = new THREE.WebGLRenderer({ antialias: true});
 
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setClearColor(0xffffff);
             camera.position.z = 5;
 
             const geometry = new THREE.BoxGeometry();
@@ -33,6 +36,15 @@ export default function Scene() {
             const light = new THREE.DirectionalLight(color, intensity);
             light.position.set(-1, 2, 4);
             scene.add(light);
+
+            const groundGeometry = new THREE.PlaneGeometry(5,5)
+            const groundMaterial = new THREE.MeshLambertMaterial({
+                color: 0xffffff
+            })
+            const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial)
+            groundMesh.position.set(0, -2, 0)
+            groundMesh.rotation.set(Math.PI / -2, 0, 0)
+            scene.add(groundMesh);
 
             containerRef.current?.appendChild(renderer.domElement);
             
@@ -52,33 +64,54 @@ export default function Scene() {
 
             // pivot initial render
             const pivot = new THREE.Object3D();
+            console.log(pivot);
             pivot.add(cubeRotate);
             cubeRotate.position.set(0,0,-2);
             scene.add(pivot);
 
             // Use GSAP to animate the cube's movement
-            gsap.to(cubeRotate.rotation, {
-                x: Math.PI * 2,
-                y: Math.PI * 2,
-                duration: 4, // 4 sec
-                ease: "linear",
-                repeat: -1,
-            })
+            // gsap.to(cubeRotate.rotation, {
+            //     x: Math.PI * 2,
+            //     y: Math.PI * 2,
+            //     duration: 8,
+            //     ease: "linear",
+            //     repeat: -1,
+            // })
 
             //use gsap to animate the pivot's movement
             gsap.to(pivot.rotation, {
-                duration: 4,
+                duration: 5,
                 repeat: -1,
                 ease: "linear",
                 y: Math.PI * 2,
             }) 
 
+            //------ Orbit Controls -------
+            const orbitControls = new OrbitControls(camera, renderer.domElement);
+
+            //------ Stats -------
+            const stats = new Stats();
+            stats.showPanel( 1 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+            document.body.appendChild( stats.dom );
+
+            //------ Orbit Controls -------
+            const gui = new GUI();
+            const props = {
+                cubeSpeed: 0.03
+            };
+            gui.add(props, 'cubeSpeed', -0.2, 0.2, 0.01)
+
             //------ Render Scene -------
             let newCubeSize: number;
 
             const renderScene = () => {
+                cube.rotation.x += props.cubeSpeed;
+                cube.rotation.y += props.cubeSpeed;
+
                 renderer.render(scene, camera); 
                 animationFrameId = requestAnimationFrame(renderScene);
+                stats.update();
+                orbitControls.update();
             }
             
             //------ Resizing function that will run on window resize --------
@@ -90,32 +123,7 @@ export default function Scene() {
                 camera.updateProjectionMatrix();
                 
                 newCubeSize = Math.max(0.3, Math.min(1, newWidth / 1000));
-                cube.scale.set(newCubeSize, newCubeSize, newCubeSize);
-
-                // Update pivotDistance based on the current breakpoint value
-                // switch (breakpointValue) {
-                //     case "base":
-                //         pivotDistance = 0.1;
-                //         break;
-                //     case "sm":
-                //         pivotDistance = 0.5;
-                //         break;
-                //     case "md":
-                //         pivotDistance = 1;
-                //         break;
-                //     case "lg":
-                //         pivotDistance = 2;
-                //         break;
-                //     case "xl":
-                //         pivotDistance = 2.5;
-                //         break;
-                //     default:
-                //         break;
-                // }
-
-                // pivot1.position.x = -2.5;
-                // pivot2.position.x = 2.5;
-                               
+                cube.scale.set(newCubeSize, newCubeSize, newCubeSize);                               
                 renderer.setSize(newWidth,newHeight);
             }
             
